@@ -8,7 +8,7 @@ describe('Game service', () => {
     const secondUserId = 'user-id-2';
     
     beforeEach(() => {
-        let gamesCreated = service.availableTo("not-a-user");
+        let gamesCreated = service.availableTo('not-a-user');
         gamesCreated.forEach(game => game.remove());
     });
     

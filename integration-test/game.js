@@ -1,3 +1,5 @@
+/*eslint-env phantomjs */
+/*eslint-disable no-console */
 (function() {
     'use strict';
 
@@ -67,7 +69,7 @@
                 console.log('Test failed!');
                 handleError(e.message);
             }
-        }
+        };
     }
     
     function handleError(message) {
