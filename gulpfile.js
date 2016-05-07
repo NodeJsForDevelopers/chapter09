@@ -5,6 +5,7 @@ const mocha = require('gulp-mocha');
 const env = require('gulp-env');
 const eslint = require('gulp-eslint');
 const istanbul = require('gulp-istanbul');
+const shell = require('gulp-shell');
 
 gulp.task('lint-server', function() {
     return gulp.src(['src/**/*.js', '!src/public/**/*.js'])
@@ -61,6 +62,20 @@ gulp.task('test', ['lint-test', 'instrument'], function() {
         }
       }
     }));
+});
+
+gulp.task('integration-test', ['lint-integration-test', 'test'], (done) => {
+  const TEST_PORT = 5000;
+  let server = require('http')
+    .createServer(require('./src/app.js'))
+    .listen(TEST_PORT, function() {
+      gulp.src('integration-test/**/*.js')
+        .pipe(shell('node node_modules/phantomjs-prebuilt/bin/phantomjs <%=file.path%>', {
+            env: { 'TEST_PORT': TEST_PORT }
+        }))
+        .on('error', () => server.close(done))
+        .on('end', () => server.close(done))
+    });
 });
 
 gulp.task('lint', ['lint-server', 'lint-client', 'lint-test', 'lint-integration-test']);
