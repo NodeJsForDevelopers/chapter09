@@ -4,20 +4,20 @@ var express = require('express');
 var router = express.Router();
 var games = require('../services/games');
 
-/* GET home page. */
 router.get('/', function(req, res, next) {
-    games.createdBy(req.user.id)
-        .then(gamesCreatedByUser => 
-            games.availableTo(req.user.id)
-                .then(gamesAvailableToUser => {
-                res.render('index', {
+    Promise.all([
+        games.createdBy(req.user.id),
+        games.availableTo(req.user.id)
+    ])
+        .then(results => {
+            res.render('index', {
                         title: 'Hangman',
                         userId: req.user.id,
-                        createdGames: gamesCreatedByUser,
-                        availableGames: gamesAvailableToUser,
+                        createdGames: results[0],
+                        availableGames: results[1],
                         partials: { createdGame: 'createdGame' }
                     });
-                }))
+            })
         .catch(next);
 });
 
