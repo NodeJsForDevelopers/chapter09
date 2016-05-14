@@ -8,51 +8,34 @@ describe('Game service', () => {
     const secondUserId = 'user-id-2';
     
     beforeEach(function(done) {
-        service.availableTo('not-a-user', (err, gamesAdded) => {
-            let gamesDeleted = 0;
-            if (gamesAdded.length === 0) {
-                done();
-            }
-            gamesAdded.forEach(game => {
-                game.remove(() => {
-                    if (++gamesDeleted === gamesAdded.length) {
-                        done();
-                    }
-                });
-            });
-        });
+        service.availableTo('non-existent-user')
+            .then(games => games.map(game => game.remove()))
+            .then(gamesRemoved => Promise.all(gamesRemoved))
+            .then(() => done(), done);
     });
 
     describe('list of available games', () => { 
         it('should include games set by other users', done => {
-            // Given
-            service.create(firstUserId, 'testing', () => {
-                // When
-                service.availableTo(secondUserId, (err, games) => {
-                    // Then
-                    expect(games.length).to.equal(1);
-                    const game = games[0];
-                    expect(game.setBy).to.equal(firstUserId);
-                    expect(game.word).to.equal('TESTING');
-                    done();
-                });
-            });
+            service.create(firstUserId, 'testing')
+                .then(() => service.availableTo(secondUserId))
+                .then(games => {
+                        expect(games.length).to.equal(1);
+                        let game = games[0];
+                        expect(game.setBy).to.equal(firstUserId);
+                        expect(game.word).to.equal('TESTING');
+                    })
+                .then(done, done);
         });
         
         it('should not include games set by the same user', done => {
-            // Given
-            service.create(firstUserId, 'first', () => {
-                service.create(secondUserId, 'second', () => {
-                    //When
-                    service.availableTo(secondUserId, (err, games) => {
-                        // Then
-                        expect(games.length).to.equal(1);
-                        const game = games[0];
-                        expect(game.setBy).not.to.equal(secondUserId);
-                        done();
-                    });
-                });
-            });
+            service.create(firstUserId, 'testing')
+                .then(() => service.availableTo(secondUserId))
+                .then(games => {
+                    expect(games.length).to.equal(1);
+                    let game = games[0];
+                    expect(game.setBy).to.not.equal(secondUserId);
+                })
+                .then(done, done);
         });
     });
 });

@@ -7,30 +7,24 @@ const service = require('../services/games');
 router.post('/', function(req, res, next) {
     const word = req.body.word;
     if (word && /^[A-Za-z]{3,}$/.test(word)) {
-        service.create(req.user.id, word, (err, game) => {
-            if (err) {
-                next(err);
-            } else {
-                res.redirect(`/games/${game.id}/created`);
-            }
-        });
+        service.create(req.user.id, word)
+            .then(game => res.redirect(`/games/${game.id}/created`))
+            .catch(next);
     } else {
         res.status(400).send('Word must be at least three characters long and contain only letters');
     }
 });
 
 const checkGameExists = function(id, res, onSuccess, onError) {
-    service.get(id, function(err, game) {
-        if (err) {
-            onError(err);
-        } else {
+    service.get(id)
+        .then(game => {
             if (game) {
                 onSuccess(game);
             } else {
                 res.status(404).send('Non-existent game ID');
             }
-        }
-    });
+        })
+        .catch(onError);
 };
 
 router.get('/:id', function(req, res, next) {
@@ -63,13 +57,9 @@ router.delete('/:id', function(req, res, next) {
         res,
         game => {
             if (game.setBy === req.user.id) {
-                game.remove((err) => {
-                    if (err) {
-                        next(err);
-                    } else {
-                        res.send();
-                    }
-                });
+                game.remove()
+                    .then(() => res.send())
+                    .catch(next);
             } else {
                 res.status(403).send(
                     'You do not have permission to delete this game'

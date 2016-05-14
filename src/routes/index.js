@@ -6,25 +6,19 @@ var games = require('../services/games');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    games.createdBy(req.user.id, (err, createdGames) => {
-        if (err) {
-            next(err);
-        } else {
-            games.availableTo(req.user.id, (err, availableGames) => {
-                if (err) {
-                    next(err);
-                } else {
-                    res.render('index', {
+    games.createdBy(req.user.id)
+        .then(gamesCreatedByUser => 
+            games.availableTo(req.user.id)
+                .then(gamesAvailableToUser => {
+                res.render('index', {
                         title: 'Hangman',
                         userId: req.user.id,
-                        createdGames: createdGames,
-                        availableGames: availableGames,
+                        createdGames: gamesCreatedByUser,
+                        availableGames: gamesAvailableToUser,
                         partials: { createdGame: 'createdGame' }
                     });
-                }
-            });
-        }
-    });
+                }))
+        .catch(next);
 });
 
 module.exports = router;
