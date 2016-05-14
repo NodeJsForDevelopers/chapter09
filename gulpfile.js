@@ -4,6 +4,7 @@ const gulp = require('gulp');
 const mocha = require('gulp-mocha');
 const env = require('gulp-env');
 const eslint = require('gulp-eslint');
+const istanbul = require('gulp-istanbul');
 
 gulp.task('lint-server', function() {
     return gulp.src(['src/**/*.js', '!src/public/**/*.js'])
@@ -41,10 +42,25 @@ gulp.task('lint-integration-test', function() {
         .pipe(eslint.failAfterError());
 });
 
-gulp.task('test', ['lint-test'], function() {
+gulp.task('instrument', function() {
+    return gulp.src('src/**/*.js')
+        .pipe(istanbul())
+        .pipe(istanbul.hookRequire())
+});
+
+gulp.task('test', ['lint-test', 'instrument'], function() {
   env({ vars: { NODE_ENV: 'test' } });
   return gulp.src('test/**/*.js')
-    .pipe(mocha());
+    .pipe(mocha())
+    .pipe(istanbul.writeReports())
+    .pipe(istanbul.enforceThresholds({
+      thresholds: {
+        global: {
+          statements: 70,
+          branches: 50
+        }
+      }
+    }));
 });
 
 gulp.task('lint', ['lint-server', 'lint-client', 'lint-test', 'lint-integration-test']);
