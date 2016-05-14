@@ -66,8 +66,7 @@ describe('User service', function() {
         it('should provide the rank and score for a player with no wins', function(done) {
             service.getRanking('other')
                 .then(result => {
-                    expect(result.rank).to.equal(null);
-                    expect(result.wins).to.equal(0);
+                    expect(result).to.be.null;
                 })
                 .then(() => done(), done);
         });

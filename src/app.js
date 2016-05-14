@@ -9,8 +9,10 @@ module.exports = (mongoose) => {
 
     var users = require('./middleware/users');
     let gamesService = require('./services/games')(mongoose);
-    let routes = require('./routes/index')(gamesService);
-    let games = require('./routes/games')(gamesService);
+    let usersService = require('./services/users');
+    let routes = require('./routes/index')(gamesService, usersService);
+    let games = require('./routes/games')(gamesService, usersService);
+    let profile = require('./routes/profile')(usersService);
 
     var app = express();
 
@@ -30,6 +32,7 @@ module.exports = (mongoose) => {
     app.use(users);
     app.use('/', routes);
     app.use('/games', games);
+    app.use('/profile', profile);
 
     // catch 404 and forward to error handler
     app.use(function(req, res, next) {

@@ -31,7 +31,7 @@ module.exports = {
             redisClient.zscoreAsync('user:wins', userId)
         ]).then(out => {
             if (out[0] === null) {
-                return { rank: null, wins: 0 };
+                return null;
             }
             return { rank: out[0] + 1, wins: parseInt(out[1], 10) };
         });

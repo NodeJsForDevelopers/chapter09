@@ -20,6 +20,10 @@ module.exports = (mongoose) => {
             }
             return positions;
         };
+        
+        gameSchema.methods.matches = function(word) {
+            return this.word === word.toUpperCase();
+        };
 
         Game = mongoose.model('Game', gameSchema);
     }
