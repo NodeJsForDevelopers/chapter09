@@ -69,6 +69,7 @@ gulp.task('integration-test', ['lint-integration-test', 'test'], (done) => {
   
     require('./src/config/mongoose.js').then((mongoose) => {
         let server, teardown = (error) => {
+            require('./src/config/redis.js').quit();
             server.close(() =>
                 mongoose.disconnect(() => done(error)));
         };
