@@ -1,11 +1,18 @@
 'use strict';
 
 const expect = require('chai').expect;
-const service = require('../../src/services/games.js');
 
 describe('Game service', () => {
     const firstUserId = 'user-id-1';
     const secondUserId = 'user-id-2';
+    
+    let service;
+    before(done => {
+        require('../../src/config/mongoose.js').then((mongoose) => {
+            service = require('../../src/services/games.js')(mongoose);
+            done();
+        }).catch(done);
+    });
     
     beforeEach(function(done) {
         service.availableTo('non-existent-user')

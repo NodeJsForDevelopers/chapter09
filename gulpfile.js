@@ -57,25 +57,32 @@ gulp.task('test', ['lint-test', 'instrument'], function() {
     .pipe(istanbul.enforceThresholds({
       thresholds: {
         global: {
-          statements: 70,
-          branches: 40
+          statements: 75,
+          branches: 50
         }
       }
     }));
 });
 
 gulp.task('integration-test', ['lint-integration-test', 'test'], (done) => {
-  const TEST_PORT = 5000;
-  let server = require('http')
-    .createServer(require('./src/app.js'))
-    .listen(TEST_PORT, function() {
-      gulp.src('integration-test/**/*.js')
-        .pipe(shell('node node_modules/phantomjs-prebuilt/bin/phantomjs <%=file.path%>', {
-            env: { 'TEST_PORT': TEST_PORT }
-        }))
-        .on('error', () => server.close(done))
-        .on('end', () => server.close(done))
-    });
+    const TEST_PORT = 5000;
+  
+    require('./src/config/mongoose.js').then((mongoose) => {
+        let server, teardown = (error) => {
+            server.close(() =>
+                mongoose.disconnect(() => done(error)));
+        };
+        server = require('http')
+            .createServer(require('./src/app.js')(mongoose))
+            .listen(TEST_PORT, function() {
+                gulp.src('integration-test/**/*.js')
+                    .pipe(shell('node node_modules/phantomjs-prebuilt/bin/phantomjs <%=file.path%>', {
+                        env: { 'TEST_PORT': TEST_PORT }
+                    }))
+                    .on('error', teardown)
+                    .on('end', teardown)
+        });
+  });
 });
 
 gulp.task('lint', ['lint-server', 'lint-client', 'lint-test', 'lint-integration-test']);

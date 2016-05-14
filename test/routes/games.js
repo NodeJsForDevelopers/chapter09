@@ -4,20 +4,23 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('supertest');
 const expect = require('chai').expect;
-const gamesService = require('../../src/services/games.js');
 
 const userId = 'test-user-id';
 
 describe('/games', () => {
-    let agent, app;
+    let agent, app, gamesService;
     
-    before(() => {
-        app = express();
-        app.use(bodyParser.json());
-        app.use((req, res, next) => { req.user = { id: userId }; next(); });
-        
-        const games = require('../../src/routes/games.js');
-        app.use('/games', games);
+    before(done => {
+        require('../../src/config/mongoose.js').then((mongoose) => {
+            app = express();
+            app.use(bodyParser.json());
+            app.use((req, res, next) => { req.user = { id: userId }; next(); });
+            
+            gamesService = require('../../src/services/games.js')(mongoose);
+            const games = require('../../src/routes/games.js')(gamesService);
+            app.use('/games', games);
+            done();
+        }).catch(done);
     });
     
     beforeEach(() => {
