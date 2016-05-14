@@ -58,7 +58,7 @@ gulp.task('test', ['lint-test', 'instrument'], function() {
       thresholds: {
         global: {
           statements: 70,
-          branches: 50
+          branches: 40
         }
       }
     }));

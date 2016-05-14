@@ -3,6 +3,9 @@
 const games = [];
 let nextId = 1;
 
+const asAsync = (callback, result) =>
+                process.nextTick(() => callback(null, result));
+
 class Game {
     constructor(id, setBy, word) {
         this.id = id;
@@ -20,22 +23,24 @@ class Game {
         return positions;
     }
     
-    remove() {
+    remove(callback) {
         games.splice(games.indexOf(this), 1);
+        asAsync(callback);
     }
 }
 
-module.exports.create = (userId, word) => {
+module.exports.create = (userId, word, callback) => {
     const newGame = new Game(nextId++, userId, word); 
     games.push(newGame);
-    return newGame;
+    asAsync(callback, newGame);
 };
 
-module.exports.get =
-  (id) => games.find(game => game.id === parseInt(id, 10));
+module.exports.get = (id, callback) =>
+    asAsync(callback, games.find(game => game.id === parseInt(id, 10)));
 
-module.exports.createdBy =
-  (userId) => games.filter(game => game.setBy === userId);
+module.exports.createdBy = (userId, callback) =>
+    asAsync(callback, games.filter(game => game.setBy === userId));
+    
+module.exports.availableTo = (userId, callback) =>
+    asAsync(callback, games.filter(game => game.setBy !== userId));
 
-module.exports.availableTo =
-  (userId) => games.filter(game => game.setBy !== userId);
